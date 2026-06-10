@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block title %}Overview · EmbedIQ Cloud{% endblock %}
+{% block page_title %}Overview{% endblock %}
+{% block actions %}
+<select id="overview-group" class="select w-auto btn-sm" aria-label="Filter by group">
+  <option value="">All groups</option>
+</select>
+<button id="overview-refresh" class="btn btn-primary btn-sm" type="button">Refresh</button>
+{% endblock %}
+{% block content %}
+<!-- 1. KPI row — all from the registry API (works under dev.sh, no broker/Influx) -->
+<section class="cols section" aria-label="Fleet summary">
+  <article class="card s3">
+    <div class="stat">
+      <span class="stat-label">Total devices</span>
+      <span class="stat-value" id="kpi-total"><span class="skeleton skeleton-stat"></span></span>
+    </div>
+  </article>
+  <article class="card s3">
+    <div class="stat">
+      <span class="stat-label">Online</span>
+      <span class="stat-value" id="kpi-online"><span class="skeleton skeleton-stat"></span></span>
+      <span class="stat-trend is-ok hidden" id="kpi-online-pct"></span>
+    </div>
+  </article>
+  <article class="card s3">
+    <div class="stat">
+      <span class="stat-label">Needs attention</span>
+      <span class="stat-value" id="kpi-attention"><span class="skeleton skeleton-stat"></span></span>
+      <span class="stat-trend is-warn hidden" id="kpi-attention-note"></span>
+    </div>
+  </article>
+  <article class="card s3">
+    <div class="stat">
+      <span class="stat-label">Firmware versions</span>
+      <span class="stat-value" id="kpi-firmware"><span class="skeleton skeleton-stat"></span></span>
+    </div>
+  </article>
+</section>
+
+<!-- 2. Chart row -->
+<section class="cols section" aria-label="Trends">
+  <article class="card s6">
+    <div class="card-head">Devices online over time</div>
+    <div class="card-body">
+      <div class="chart-box">
+        <canvas id="chart-online" aria-label="Devices online over time"></canvas>
+        <div class="chart-empty" id="chart-online-empty">
+          <div class="empty">
+            <div class="icon-tile" aria-hidden="true">📈</div>
+            <p>Online-history charts appear once the metrics stack (InfluxDB) is connected. Run the full stack with <code>docker compose up</code>.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+  <article class="card s6">
+    <div class="card-head">Firmware distribution</div>
+    <div class="card-body">
+      <div class="chart-box">
+        <canvas id="chart-firmware" aria-label="Firmware distribution across the fleet"></canvas>
+        <div class="chart-empty hidden" id="chart-firmware-empty">
+          <div class="empty">
+            <div class="icon-tile" aria-hidden="true">📦</div>
+            <p>No firmware versions reported yet. They appear here as devices check in.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- 3 + 4. Needs-attention list + recent OTA / activity -->
+<section class="cols section">
+  <article class="card s7">
+    <div class="card-head">
+      Needs attention
+      <span class="push small muted" id="needs-count"></span>
+    </div>
+    <div class="card-body" id="needs-attention">
+      <div class="skeleton skeleton-line"></div>
+      <div class="skeleton skeleton-line"></div>
+      <div class="skeleton skeleton-line"></div>
+    </div>
+  </article>
+  <article class="card s5">
+    <div class="card-head">Recent OTA / activity</div>
+    <div class="card-body">
+      <div class="console" id="recent-ota">
+        <div class="line ts">› loading activity…</div>
+      </div>
+    </div>
+  </article>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="/static/overview.js" defer></script>
+{% endblock %}

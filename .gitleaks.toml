@@ -1,0 +1,17 @@
+# .gitleaks.toml — secret scanning configuration.
+# Use the upstream default ruleset.
+[extend]
+useDefault = true
+
+# Narrow allowlist: public container image references of the shape
+# `registry/org/image:tag[@sha256:...]` are not secrets. The pinned broker image
+# `iegomez/mosquitto-go-auth:3.0.0-mosquitto_2.0.18` trips the default `generic-api-key`
+# rule because "auth:<tag>" looks like a keyword + high-entropy value. This exempts only
+# lines containing an image reference; it does NOT disable or broaden any rule, so real
+# secrets (API keys, tokens, private keys) are still detected normally.
+[allowlist]
+description = "Public container image references (org/image:tag[@sha256:...]) are not secrets"
+regexTarget = "line"
+regexes = [
+  '''[a-z0-9][a-z0-9._/-]+/[a-z0-9][a-z0-9._-]+:[A-Za-z0-9][A-Za-z0-9._-]+(@sha256:[a-f0-9]{64})?''',
+]

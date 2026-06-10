@@ -1,0 +1,10 @@
+extends: existence
+message: "Filler word '%s' — cut it or replace it with something concrete."
+level: warning
+ignorecase: true
+tokens:
+  - very
+  - really
+  - just
+  - simply
+  - in order to

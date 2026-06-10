@@ -1,0 +1,7 @@
+# EmbedIQ Cloud — Mosquitto ACL (basic).
+# PR-B tightens this to per-device topic scoping once the auth plugin is wired.
+# For now: allow the EmbedIQ topic namespace.
+topic readwrite embediq/#
+
+# Per-client pattern (a device's client id scopes its own subtree).
+pattern readwrite embediq/%c/#

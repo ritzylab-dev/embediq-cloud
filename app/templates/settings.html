@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Settings · EmbedIQ Cloud{% endblock %}
+{% block page_title %}Settings{% endblock %}
+{% block content %}
+<div class="cols">
+  <div class="card s7">
+    <div class="card-head">
+      <span>CA certificate</span>
+      <span id="ca-expiry" class="small muted"></span>
+      <button id="ca-copy-btn" class="btn btn-ghost btn-sm push" type="button">Copy</button>
+    </div>
+    <div class="card-body">
+      <p class="small muted mb-2">
+        The cloud CA that signs device certificates. Distribute this to devices so they can verify the broker.
+      </p>
+      <textarea id="ca-cert" class="textarea mono" rows="12" spellcheck="false" readonly></textarea>
+    </div>
+  </div>
+
+  <div class="s5 flex-col">
+    <div class="card">
+      <div class="card-head">
+        <span>System health</span>
+        <span class="small muted">(auto-refreshes every 30s)</span>
+      </div>
+      <div class="card-body">
+        <dl class="kv" id="system-health">
+          <dt>Status</dt>
+          <dd><span id="health-status"><span class="skeleton skeleton-line"></span></span></dd>
+          <dt>Version</dt>
+          <dd class="mono" id="health-version">—</dd>
+          <dt>Devices online</dt>
+          <dd id="health-online">—</dd>
+          <dt>Uptime</dt>
+          <dd id="health-uptime">—</dd>
+        </dl>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">Admin &amp; secrets</div>
+      <div class="card-body flex-col">
+        <p class="small muted mb-2">
+          The admin password and all service secrets are set at install time and held in
+          <span class="mono">.env</span> (never committed). To change the admin password, re-run
+          <span class="mono">install.sh</span> with a new one.
+        </p>
+        <p class="small muted mb-2">
+          In-app password change and multi-user accounts are intentionally out of scope for this
+          single-admin v0 — the control plane is operated by one administrator.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="/static/settings.js" defer></script>
+{% endblock %}

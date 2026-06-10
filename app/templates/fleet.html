@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}Fleet · EmbedIQ Cloud{% endblock %}
+{% block page_title %}Fleet{% endblock %}
+{% block actions %}
+<select id="group-filter" class="select w-auto btn-sm" aria-label="Filter by group">
+  <option value="">All groups</option>
+</select>
+<button id="refresh-btn" class="btn btn-primary btn-sm" type="button">Refresh</button>
+{% endblock %}
+{% block content %}
+<!-- fleet-health KPI strip (reuses the .stat component, like the Overview) -->
+<section class="cols section" id="fleet-health" aria-label="Fleet health">
+  <article class="card s4">
+    <div class="stat">
+      <span class="stat-label">Total devices</span>
+      <span class="stat-value" id="fleet-kpi-total"><span class="skeleton skeleton-stat"></span></span>
+    </div>
+  </article>
+  <article class="card s4">
+    <div class="stat">
+      <span class="stat-label">Online</span>
+      <span class="stat-value" id="fleet-kpi-online"><span class="skeleton skeleton-stat"></span></span>
+      <span class="stat-trend is-ok hidden" id="fleet-kpi-online-pct"></span>
+    </div>
+  </article>
+  <article class="card s4">
+    <div class="stat">
+      <span class="stat-label">Needs attention</span>
+      <span class="stat-value" id="fleet-kpi-attention"><span class="skeleton skeleton-stat"></span></span>
+      <span class="stat-trend is-warn hidden" id="fleet-kpi-attention-note"></span>
+    </div>
+  </article>
+</section>
+
+<section class="card">
+  <div class="table-wrap">
+    <table id="device-table" class="table">
+      <thead>
+        <tr>
+          <th scope="col">Device</th>
+          <th scope="col">Status</th>
+          <th scope="col">Last seen</th>
+          <th scope="col">Group</th>
+          <th scope="col">Firmware</th>
+        </tr>
+      </thead>
+      <tbody id="device-rows">
+        <tr>
+          <td colspan="5"><span class="skeleton skeleton-line"></span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}
+<script src="/static/fleet.js" defer></script>
+{% endblock %}

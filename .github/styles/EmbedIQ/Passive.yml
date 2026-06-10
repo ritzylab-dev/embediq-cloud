@@ -1,0 +1,6 @@
+extends: existence
+message: "Possible passive voice ('%s') — prefer active voice where it reads cleanly."
+level: warning
+ignorecase: true
+raw:
+  - \b(?:am|is|are|was|were|be|been|being)\b\s+(?:\w+\s+)?\w+ed\b

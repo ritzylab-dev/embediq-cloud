@@ -1,0 +1,73 @@
+# EmbedIQ Cloud — OSS infrastructure stack (lite, ~1 GB VPS).
+# Same as docker-compose.yml WITHOUT hawkbit and mediamtx. Images pinned (L-09 / R-9).
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.22
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "8883:8883"
+    volumes:
+      - ./config/mosquitto:/mosquitto/config
+      - ./certs:/certs:ro
+
+  influxdb:
+    image: influxdb:2.7.12
+    restart: unless-stopped
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: ${INFLUX_USER:-embediq}
+      DOCKER_INFLUXDB_INIT_PASSWORD: ${INFLUX_PASSWORD:-changeme-influx-pass}
+      DOCKER_INFLUXDB_INIT_ORG: ${INFLUX_ORG:-embediq}
+      DOCKER_INFLUXDB_INIT_BUCKET: ${INFLUX_BUCKET:-telemetry}
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: ${INFLUX_TOKEN:-changeme-influx-token}
+
+  loki:
+    image: grafana/loki:3.7.2
+    restart: unless-stopped
+    command: -config.file=/etc/loki/loki-config.yaml
+    volumes:
+      - ./config/loki:/etc/loki
+      - loki-data:/loki
+
+  grafana:
+    image: grafana/grafana:10.4.19
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASS:-admin}
+      INFLUX_TOKEN: ${INFLUX_TOKEN:-changeme-influx-token}
+      INFLUX_ORG: ${INFLUX_ORG:-embediq}
+      INFLUX_BUCKET: ${INFLUX_BUCKET:-telemetry}
+    volumes:
+      - ./config/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - influxdb
+      - loki
+
+  embediq-api:
+    build: .
+    image: embediq-cloud-api:dev
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - path: .env
+        required: false
+    depends_on:
+      - mosquitto
+      - influxdb
+      - loki
+    volumes:
+      - ./certs:/certs:ro
+      - embediq-db:/data
+
+volumes:
+  influxdb-data:
+  loki-data:
+  embediq-db:
+
+networks:
+  default:
+    name: embediq-net

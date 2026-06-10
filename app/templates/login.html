@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+  EmbedIQ Cloud admin UI — sign-in (standalone, no app shell).
+  @company embediq.com | ritzylab.com · SPDX-License-Identifier: Apache-2.0
+-->
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sign in · EmbedIQ Cloud</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link href="/static/design-system.css" rel="stylesheet" />
+    <script>
+      (function () {
+        var saved = localStorage.getItem("embediq-theme");
+        var prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.setAttribute("data-theme", saved || (prefersDark ? "dark" : "light"));
+      })();
+    </script>
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <div class="login-wrap">
+      <div class="card login-card">
+        <div class="card-body">
+          <h1 class="mb-2">Embed<span class="brand-accent">IQ</span> Cloud</h1>
+          <p class="muted mb-4">Sign in to the control plane.</p>
+          <form id="login-form" class="flex-col" novalidate>
+            <div>
+              <label class="label" for="username">Username</label>
+              <input class="input" id="username" name="username" type="text" autocomplete="username" required autofocus />
+            </div>
+            <div>
+              <label class="label" for="password">Password</label>
+              <input class="input" id="password" name="password" type="password" autocomplete="current-password" required />
+            </div>
+            <div id="login-error" class="toast is-danger show hidden" role="alert"></div>
+            <button class="btn btn-primary full" type="submit">Sign in</button>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div id="toast-tray" class="toast-tray" aria-live="polite" aria-atomic="true"></div>
+    <script src="/static/login.js" defer></script>
+  </body>
+</html>

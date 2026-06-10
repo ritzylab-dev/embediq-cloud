@@ -1,0 +1,6 @@
+extends: existence
+message: "Sentence runs long (over ~30 words) — split it for lower cognitive load."
+level: warning
+scope: sentence
+raw:
+  - '(?:\S+\s+){30,}\S+'

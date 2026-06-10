@@ -1,0 +1,10 @@
+{
+  // Rule config lives in .markdownlint.jsonc; this file carries cli2 options only.
+  // Do not lint the planning lane (read-only) or local build artifacts.
+  "ignores": [
+    "pm/**",
+    ".venv/**",
+    "**/node_modules/**",
+    "**/.git/**"
+  ]
+}

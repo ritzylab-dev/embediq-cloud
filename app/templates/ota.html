@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}OTA · EmbedIQ Cloud{% endblock %}
+{% block page_title %}OTA Management{% endblock %}
+{% block content %}
+<div class="cols">
+  <div class="card s5">
+    <div class="card-head">Upload firmware</div>
+    <div class="card-body">
+      <form id="firmware-upload-form" class="flex-col" novalidate>
+        <div>
+          <label class="label" for="fw-name">Name</label>
+          <input id="fw-name" class="input" type="text" required />
+        </div>
+        <div>
+          <label class="label" for="fw-version">Version</label>
+          <input id="fw-version" class="input mono" type="text" placeholder="1.0.0" required />
+        </div>
+        <div>
+          <label class="label" for="fw-file">Artifact</label>
+          <label class="dropzone" for="fw-file">
+            <span class="icon-tile" aria-hidden="true">⇪</span>
+            <span id="fw-file-name" class="dz-name">Choose a firmware file…</span>
+            <input id="fw-file" type="file" class="hidden" required />
+          </label>
+        </div>
+        <div>
+          <button id="fw-upload-btn" class="btn btn-primary full" type="submit">Upload</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="card s7">
+    <div class="card-head">
+      <span>Firmware</span>
+      <button id="fw-refresh-btn" class="btn btn-ghost btn-sm push" type="button">Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table id="firmware-table" class="table">
+        <thead>
+          <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Version</th>
+            <th scope="col">Size</th>
+            <th scope="col" class="text-end">Deploy</th>
+          </tr>
+        </thead>
+        <tbody id="firmware-rows">
+          <tr>
+            <td colspan="4"><span class="skeleton skeleton-line"></span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card s12">
+    <div class="card-head">
+      <span>Deployment status</span>
+      <span class="small muted">(auto-refreshes every 10s)</span>
+      <div class="flex push">
+        <input id="ota-status-device" class="input mono w-auto" type="text" placeholder="device id" aria-label="Device id to track" />
+        <button id="ota-status-track-btn" class="btn btn-ghost btn-sm" type="button">Track</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="ota-status-table" class="table">
+        <thead>
+          <tr>
+            <th scope="col">Device</th>
+            <th scope="col">Status</th>
+            <th scope="col">Progress</th>
+            <th scope="col">Version</th>
+            <th scope="col">Updated</th>
+          </tr>
+        </thead>
+        <tbody id="ota-status-rows">
+          <tr>
+            <td colspan="5" class="cell-center">Enter a device id above to track its deployment.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Deploy modal -->
+<div class="modal" id="deploy-modal" role="dialog" aria-modal="true" aria-labelledby="deploy-modal-title">
+  <div class="modal-card">
+    <div class="modal-head" id="deploy-modal-title">Deploy firmware</div>
+    <div class="modal-body flex-col">
+      <p class="mb-2">
+        Deploy <strong id="deploy-fw-label" class="mono"></strong> to a single device or a group.
+      </p>
+      <div>
+        <label class="label" for="deploy-target-kind">Target</label>
+        <select id="deploy-target-kind" class="select">
+          <option value="device">Single device</option>
+          <option value="group">Group</option>
+        </select>
+      </div>
+      <div id="deploy-device-wrap">
+        <label class="label" for="deploy-device">Device</label>
+        <select id="deploy-device" class="select mono"></select>
+      </div>
+      <div class="hidden" id="deploy-group-wrap">
+        <label class="label" for="deploy-group">Group</label>
+        <select id="deploy-group" class="select"></select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button id="deploy-confirm-btn" type="button" class="btn btn-primary">Deploy</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="/static/ota.js" defer></script>
+{% endblock %}

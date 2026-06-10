@@ -1,0 +1,7 @@
+# EmbedIQ Cloud — mediamtx configuration (minimal).
+# Pinned image bluenviron/mediamtx:1.19.0. Defaults bind RTSP 8554, RTMP 1935,
+# HLS 8888, WebRTC 8889 — the ports published in docker-compose.yml.
+logLevel: info
+
+paths:
+  all_others:

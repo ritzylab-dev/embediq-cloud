@@ -1,0 +1,37 @@
+# .pre-commit-config.yaml — local gates mirroring CI. Versions pinned to pyproject.toml.
+# Install with: pre-commit install
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.5.0
+    hooks:
+      - id: ruff-format
+      - id: ruff
+        args: [--fix]
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.10.0
+    hooks:
+      - id: mypy
+        args: [app, scripts]
+        pass_filenames: false
+        additional_dependencies: [fastapi==0.111.0]
+
+  - repo: https://github.com/PyCQA/bandit
+    rev: 1.7.9
+    hooks:
+      - id: bandit
+        args: [-r, app, scripts]
+        pass_filenames: false
+
+  - repo: https://github.com/DavidAnson/markdownlint-cli2
+    rev: v0.13.0
+    hooks:
+      - id: markdownlint-cli2
+
+  - repo: local
+    hooks:
+      - id: check-headers
+        name: check source headers (SPDX + author/company)
+        entry: python scripts/check_headers.py
+        language: system
+        pass_filenames: false

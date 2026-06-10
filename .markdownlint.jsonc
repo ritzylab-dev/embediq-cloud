@@ -1,0 +1,10 @@
+{
+  // Sensible defaults for EmbedIQ markdown.
+  "default": true,
+  // Line length is unenforced (prose and tables wrap freely); other rules stay on.
+  "MD013": false,
+  // Allow duplicate sibling headings only when nested differently.
+  "MD024": { "siblings_only": true },
+  // Permit inline HTML comments used in templates.
+  "MD033": { "allowed_elements": [] }
+}

@@ -1,0 +1,88 @@
+name: integration
+permissions:
+  contents: read
+on:
+  pull_request:
+    paths:
+      - "app/**"
+      - "config/**"
+      - "docker-compose*.yml"
+      - "tests/integration/**"
+      - "scripts/gen-certs.sh"
+      - "install.sh"
+      - "pyproject.toml"
+      - ".github/workflows/integration.yml"
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: python -m pip install -U pip setuptools wheel
+      - run: pip install -e ".[dev]"
+      - name: generate .env (throwaway test creds; matching influx token)
+        env:
+          ADMIN_PASS: integration-pass
+        run: |
+          HASH=$(ADMIN_PASS="$ADMIN_PASS" python -c "import os,bcrypt; print(bcrypt.hashpw(os.environ['ADMIN_PASS'].encode(), bcrypt.gensalt()).decode())")
+          # bcrypt hashes contain '$'. The api reads .env via env_file, and Compose interpolates
+          # env_file values, treating $foo as a variable (blanking it → a corrupt hash → 401).
+          # Double every '$' so Compose passes the literal hash through ($$ is its documented escape).
+          HASH=$(printf '%s' "$HASH" | sed 's/\$/$$/g')
+          # Throwaway shared secret (hex → no '$', no Compose-escaping needed). Enforcement is ON
+          # for this run so the e2e exercises the real keyed /internal path. Shared with later
+          # steps via $GITHUB_ENV so the e2e sends the same key. Not hard-coded.
+          INTERNAL_API_KEY=$(openssl rand -hex 16)
+          {
+            echo "ADMIN_USER=admin"
+            echo "ADMIN_PASS_HASH=$HASH"
+            echo "JWT_SECRET=integration-jwt-secret"
+            echo "INFLUX_USER=embediq"
+            echo "INFLUX_PASSWORD=integration-influx-password"
+            echo "INFLUX_ORG=embediq"
+            echo "INFLUX_BUCKET=telemetry"
+            echo "INFLUX_TOKEN=integration-influx-token"
+            echo "HAWKBIT_USER=admin"
+            echo "HAWKBIT_ADMIN_PASS=admin"
+            echo "INTERNAL_API_KEY=$INTERNAL_API_KEY"
+          } > .env
+          echo "INTERNAL_API_KEY=$INTERNAL_API_KEY" >> "$GITHUB_ENV"
+      - name: generate broker certificates (TLS listener needs ./certs to boot)
+        run: bash scripts/gen-certs.sh
+      - name: make the broker key container-readable (CI-only)
+        # gen-certs.sh writes server.key 0600 (correct for install.sh deployments). In the
+        # container, mosquitto runs as uid 1883 and can't read the bind-mounted 0600 key, so
+        # the TLS listener fails and the broker exits. Relax ONLY this throwaway CI key to 0644
+        # so the broker boots; production keys stay 0600. Do not run mosquitto as root.
+        run: chmod 644 certs/server.key
+      - name: bring up the stack (base + CI override exposing InfluxDB)
+        run: docker compose -f docker-compose.yml -f docker-compose.integration.yml up -d --build
+      - name: wait for the stack to be ready (API, broker, InfluxDB)
+        run: |
+          compose() { docker compose -f docker-compose.yml -f docker-compose.integration.yml "$@"; }
+          for i in $(seq 1 30); do curl -fsS http://localhost:8080/health >/dev/null && break; sleep 2; done
+          curl -fsS http://localhost:8080/health >/dev/null \
+            || { echo "API never became healthy"; compose logs embediq-api; exit 1; }
+          for i in $(seq 1 30); do bash -c 'echo > /dev/tcp/localhost/1883' 2>/dev/null && break; sleep 2; done
+          bash -c 'echo > /dev/tcp/localhost/1883' 2>/dev/null \
+            || { echo "MQTT broker not accepting connections on :1883"; compose logs mosquitto; exit 1; }
+          for i in $(seq 1 30); do curl -fsS http://localhost:8086/health >/dev/null && break; sleep 2; done
+          curl -fsS http://localhost:8086/health >/dev/null \
+            || { echo "InfluxDB never became ready"; compose logs influxdb; exit 1; }
+          echo "stack ready: API /health, broker :1883, InfluxDB /health"
+      - name: run the e2e integration suite (simulated device)
+        env:
+          API_BASE_URL: http://localhost:8080
+          MQTT_HOST: localhost
+          MQTT_PORT: "1883"
+          INFLUX_URL: http://localhost:8086
+          INFLUX_TOKEN: integration-influx-token
+          INFLUX_ORG: embediq
+          INFLUX_BUCKET: telemetry
+          INTEGRATION_ADMIN_USER: admin
+          INTEGRATION_ADMIN_PASS: integration-pass
+        run: pytest -m integration --no-cov -v
+      - name: dump stack logs on failure
+        if: failure()
+        run: docker compose -f docker-compose.yml -f docker-compose.integration.yml logs

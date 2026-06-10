@@ -1,0 +1,79 @@
+name: ci
+permissions:
+  contents: read
+  pull-requests: write
+on:
+  pull_request:
+    branches: [dev]
+  push:
+    branches: [dev]
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: python -m pip install -U pip setuptools wheel
+      - run: pip install -e ".[dev]"
+      - name: format
+        run: ruff format --check .
+      - name: lint
+        run: ruff check .
+      - name: types
+        run: mypy app scripts
+      - name: tests + coverage
+        run: pytest
+      - name: code security (bandit)
+        run: bandit -r app scripts
+      - name: dependency audit
+        run: pip-audit
+      - name: headers
+        run: python scripts/check_headers.py
+      - name: commit messages (conventional)
+        run: cz check --rev-range origin/dev..HEAD
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  containers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with: { dockerfile: Dockerfile }
+      - name: compose config
+        run: docker compose config
+      - name: prod overlay compose config (TLS-only profile is valid)
+        run: docker compose -f docker-compose.yml -f docker-compose.prod.yml config
+      - name: build + smoke
+        run: |
+          docker compose up -d --build
+          for i in $(seq 1 20); do
+            if curl -fsS http://localhost:8080/health; then echo OK; exit 0; fi
+            sleep 2
+          done
+          echo "smoke failed"; docker compose logs; exit 1
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: markdown format
+        uses: DavidAnson/markdownlint-cli2-action@v16
+        with: { globs: "**/*.md" }
+      - name: doc sections (five questions in design docs/ADRs)
+        run: python scripts/check_doc_sections.py
+      - name: prose style (vale)
+        uses: errata-ai/vale-action@2.1.2
+        with:
+          fail_on_error: true
+          version: "3.14.2"
+          files: "docs README.md CONTRIBUTING.md"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

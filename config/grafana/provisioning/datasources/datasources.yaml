@@ -1,0 +1,20 @@
+# EmbedIQ Cloud — Grafana datasource provisioning.
+# Env vars (INFLUX_TOKEN/ORG/BUCKET) are passed to the grafana container from .env.
+apiVersion: 1
+
+datasources:
+  - name: InfluxDB
+    type: influxdb
+    access: proxy
+    url: http://influxdb:8086
+    jsonData:
+      version: Flux
+      organization: ${INFLUX_ORG}
+      defaultBucket: ${INFLUX_BUCKET}
+    secureJsonData:
+      token: ${INFLUX_TOKEN}
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100

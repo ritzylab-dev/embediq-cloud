@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}{{ device_id }} · EmbedIQ Cloud{% endblock %}
+{% block page_title %}Device{% endblock %}
+{% block actions %}
+<a href="/ui/fleet" class="btn btn-ghost btn-sm">← Fleet</a>
+<a id="grafana-link" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">View in Grafana</a>
+<a id="loki-link" class="btn btn-ghost btn-sm" target="_blank" rel="noopener">View Logs</a>
+{% endblock %}
+{% block content %}
+<!-- the device id is injected server-side; the page's JS reads it to fetch the JSON API -->
+<section id="device-detail" data-device-id="{{ device_id }}">
+  <div class="flex flex-wrap mb-4">
+    <h2>Device <span class="mono">{{ device_id }}</span></h2>
+    <span id="device-header-status" class="pill pill-offline">—</span>
+  </div>
+
+  <div class="cols">
+    <!-- telemetry: Chart.js line; designed empty state when no metrics stack (dev.sh) -->
+    <article class="card s8">
+      <div class="card-head">Telemetry</div>
+      <div class="card-body">
+        <div class="chart-box">
+          <canvas id="chart-telemetry" aria-label="Device telemetry over time"></canvas>
+          <div class="chart-empty" id="chart-telemetry-empty">
+            <div class="empty">
+              <div class="icon-tile" aria-hidden="true">📈</div>
+              <p>Live telemetry appears here once the metrics stack (InfluxDB) is connected. Open <strong>View in Grafana</strong> for full history.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card s4">
+      <div class="card-head">Status</div>
+      <div class="card-body">
+        <dl class="kv" id="device-status">
+          <dt>State</dt>
+          <dd><span id="status-online">—</span></dd>
+          <dt>IP address</dt>
+          <dd class="mono" id="status-ip">—</dd>
+          <dt>Firmware</dt>
+          <dd class="mono" id="status-fw">—</dd>
+          <dt>Group</dt>
+          <dd id="status-group">—</dd>
+          <dt>Last seen</dt>
+          <dd id="status-lastseen">—</dd>
+        </dl>
+      </div>
+    </article>
+
+    <article class="card s8" id="device-shadow">
+      <div class="card-head">
+        <span>Shadow</span>
+        <span id="shadow-drift" class="pill pill-online">in sync</span>
+        <button id="edit-desired-btn" class="btn btn-ghost btn-sm push" type="button">Edit Desired</button>
+      </div>
+      <div class="card-body">
+        <div class="cols">
+          <div class="s6">
+            <label class="label" for="desired-json">Desired</label>
+            <textarea id="desired-json" class="textarea mono" rows="8" spellcheck="false" readonly></textarea>
+            <div class="hidden mt-2 flex" id="desired-actions">
+              <button id="save-desired-btn" class="btn btn-primary btn-sm" type="button">Save</button>
+              <button id="cancel-desired-btn" class="btn btn-ghost btn-sm" type="button">Cancel</button>
+            </div>
+          </div>
+          <div class="s6">
+            <label class="label" for="reported-json">Reported</label>
+            <textarea id="reported-json" class="textarea mono" rows="8" spellcheck="false" readonly></textarea>
+          </div>
+          <div class="s12">
+            <label class="label" for="delta-json">Delta (drift)</label>
+            <textarea id="delta-json" class="textarea mono" rows="3" spellcheck="false" readonly></textarea>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="card s4" id="device-ota-status">
+      <div class="card-head">Deployment (OTA)</div>
+      <div class="card-body" id="ota-status-body">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line"></div>
+      </div>
+    </article>
+
+    <article class="card s12" id="device-commands">
+      <div class="card-head">Commands</div>
+      <div class="card-body flex flex-wrap">
+        <button class="btn btn-ghost" type="button" data-cmd="reboot">Reboot</button>
+        <button class="btn btn-ghost" type="button" data-cmd="rotate_cert">Rotate Cert</button>
+        <button class="btn btn-ghost" type="button" data-cmd="ota_check">Check OTA</button>
+      </div>
+    </article>
+  </div>
+</section>
+
+<!-- Command confirm modal -->
+<div class="modal" id="cmd-modal" role="dialog" aria-modal="true" aria-labelledby="cmd-modal-title">
+  <div class="modal-card">
+    <div class="modal-head" id="cmd-modal-title">Confirm command</div>
+    <div class="modal-body">
+      Send <strong id="cmd-modal-label" class="mono"></strong> to <span class="mono">{{ device_id }}</span>?
+    </div>
+    <div class="modal-foot">
+      <button type="button" class="btn btn-ghost" data-close>Cancel</button>
+      <button id="cmd-confirm-btn" type="button" class="btn btn-primary">Send</button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script src="/static/device.js" defer></script>
+{% endblock %}

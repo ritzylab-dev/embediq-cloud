@@ -1,0 +1,9 @@
+# EmbedIQ Cloud — CI-only compose override for the e2e integration harness.
+# Layered on top of docker-compose.yml (`-f docker-compose.yml -f docker-compose.integration.yml`)
+# ONLY in the CI `integration` job. It publishes InfluxDB to the runner so the harness can query
+# the telemetry it wrote. The production compose deliberately leaves InfluxDB unpublished — this
+# override never runs in a real deployment, so it introduces no production exposure.
+services:
+  influxdb:
+    ports:
+      - "8086:8086"

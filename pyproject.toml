@@ -1,0 +1,73 @@
+[project]
+name = "embediq-cloud"
+version = "0.0.1"
+description = "EmbedIQ Cloud — open-source control plane for EmbedIQ devices"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+dependencies = [
+  "fastapi==0.136.3",
+  "uvicorn[standard]==0.49.0",
+  "jinja2==3.1.6",
+  "bcrypt==5.0.0",
+  "PyJWT==2.13.0",
+  "pydantic-settings==2.14.1",
+  "cryptography==48.0.0",
+  "paho-mqtt==2.1.0",
+  "influxdb-client==1.50.0",
+  "httpx==0.28.1",
+  "python-multipart==0.0.32",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest==9.0.3",
+  "pytest-cov==7.1.0",
+  "httpx==0.28.1",
+  "ruff==0.15.16",
+  "mypy==2.1.0",
+  "bandit==1.9.4",
+  "pip-audit==2.10.0",
+  "commitizen==4.16.3",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "C4", "UP", "S", "SIM", "RUF"]
+[tool.ruff.lint.per-file-ignores]
+# tests use asserts (S101) and deliberate fixture passwords (S105/S106); bandit does not scan tests.
+"tests/*" = ["S101", "S105", "S106"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+# Untyped third-party libraries (no py.typed) — do not analyze their internals.
+# This configures mypy for untyped deps; it does not relax checking of our own code.
+[[tool.mypy.overrides]]
+module = ["influxdb_client.*", "paho.*"]
+follow_imports = "skip"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "-m 'not integration' --cov=app --cov-report=term-missing --cov-fail-under=80"
+testpaths = ["tests"]
+markers = [
+  "integration: end-to-end tests that require the live docker compose stack (the CI 'integration' job runs them; the unit run excludes them)",
+]
+
+[tool.coverage.run]
+source = ["app"]
+
+[tool.commitizen]
+name = "cz_conventional_commits"

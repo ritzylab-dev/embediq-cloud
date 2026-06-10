@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+
+# Secrets / local config
+.env
+certs/
+
+# Local dev database (scripts/dev.sh)
+dev.db
+
+# Claude per-user overrides (keep .claude/settings.json committed)
+.claude/settings.local.json

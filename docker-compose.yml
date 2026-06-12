@@ -43,6 +43,9 @@ services:
   grafana:
     image: grafana/grafana:10.4.19
     restart: unless-stopped
+    # Published so the admin UI's "View in Grafana" links (default http://localhost:3000) work.
+    ports:
+      - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASS:-admin}
       INFLUX_TOKEN: ${INFLUX_TOKEN:-changeme-influx-token}
@@ -60,17 +63,9 @@ services:
     volumes:
       - hawkbit-data:/artifactrepo
 
-  mediamtx:
-    image: bluenviron/mediamtx:1.19.0
-    restart: unless-stopped
-    ports:
-      - "8554:8554"
-      - "1935:1935"
-      - "8888:8888"
-      - "8889:8889"
-    volumes:
-      - ./config/mediamtx/mediamtx.yml:/mediamtx.yml
-
+  # mediamtx (RTSP/WebRTC streaming) is NOT part of the OSS core — no OSS code uses it (the data
+  # plane / video is a Pro concern). It lives in the optional overlay docker-compose.media.yml:
+  #   docker compose -f docker-compose.yml -f docker-compose.media.yml up -d
   embediq-api:
     build: .
     image: embediq-cloud-api:dev

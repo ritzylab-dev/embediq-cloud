@@ -13,9 +13,12 @@ hardened configuration. This page explains the difference and how to run the pro
 | Broker | Anonymous; plain `1883` and TLS `8883` | TLS/mTLS only on `8883`; no plain `1883` |
 | Device auth | Off (anonymous) | Enforced via the go-auth plugin → `/internal` |
 | `INTERNAL_API_KEY` | Optional | **Required** (the app refuses to start without it) |
+| Published ports | `8080` API/UI · `1883`+`8883` MQTT · `3000` Grafana | `8883` MQTT only; put `8080` and `3000` behind a reverse proxy |
 
 `scripts/dev.sh` runs the API and admin panel with SQLite and no broker — for previewing the UI,
-not for serving devices.
+not for serving devices. See the README's "Ports & endpoints" for the full table and the
+client-vs-device split. InfluxDB, Loki, and hawkBit stay internal in every profile; the optional
+mediamtx streaming server lives in `docker-compose.media.yml`.
 
 ## Production profile
 

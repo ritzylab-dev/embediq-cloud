@@ -1,0 +1,16 @@
+# EmbedIQ Cloud — OPTIONAL media overlay (mediamtx: RTSP / RTMP / HLS / WebRTC).
+# Not part of the OSS core stack — no OSS code uses it; it is here for deployments that want a
+# streaming server alongside the control plane. Enable it by layering it on the base file:
+#   docker compose -f docker-compose.yml -f docker-compose.media.yml up -d
+# Image pinned to an exact tag (no `latest`, per L-09 / R-9).
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:1.19.0
+    restart: unless-stopped
+    ports:
+      - "8554:8554"
+      - "1935:1935"
+      - "8888:8888"
+      - "8889:8889"
+    volumes:
+      - ./config/mediamtx/mediamtx.yml:/mediamtx.yml
